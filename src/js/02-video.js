@@ -1,33 +1,40 @@
-/*
-Завдання 2 - відеоплеєр
-HTML містить <iframe> з відео для Vimeo плеєра. Напиши скрипт, який буде зберігати поточний час відтворення відео у локальне сховище і, після перезавантаження сторінки, продовжувати відтворювати відео з цього часу.
-
-<iframe
-  id="vimeo-player"
-  src="https://player.vimeo.com/video/236203659"
-  width="640"
-  height="360"
-  frameborder="0"
-  allowfullscreen
-  allow="autoplay; encrypted-media"
-></iframe>
-
-Виконуй це завдання у файлах 02-video.html і 02-video.js. Розбий його на декілька підзавдань:
-
-1.Ознайомся з документацією бібліотеки Vimeo плеєра.
-2.Додай бібліотеку як залежність проекту через npm.
-3.Ініціалізуй плеєр у файлі скрипта як це описано в секції pre-existing player, але враховуй, що у тебе плеєр доданий як npm пакет, а не через CDN.
-4.Вивчи документацію методу on() і почни відстежувати подію timeupdate - оновлення часу відтворення.
-5.Зберігай час відтворення у локальне сховище. Нехай ключем для сховища буде рядок "videoplayer-current-time".
-6.Під час перезавантаження сторінки скористайся методом setCurrentTime() з метою відновлення відтворення зі збереженої позиції.
-7.Додай до проекту бібліотеку lodash.throttle і зроби так, щоб час відтворення оновлювався у сховищі не частіше, ніж раз на секунду.
-*/
-
-
 import Player from '@vimeo/player';
 import throttle from 'lodash.throttle';
 
-const TIME_KEY = 'videoplayer-current-time';
+// --------------- 1st variant --------------------
+
+// const iframe = document.querySelector('iframe');
+// const player = new Player(iframe);
+
+// const onPlay = function (data) {
+//     localStorage.setItem('videoplayer-current-time', data.seconds);
+// };
+
+// player.on('timeupdate', throttle(onPlay, 1000));
+
+// const currentTime = Number(localStorage.getItem('videoplayer-current-time'));
+
+// player.setCurrentTime(currentTime).then(function (seconds) {
+//     // seconds = the actual time that the player seeked to
+// }).catch(function (error) {
+//     switch (error.name) {
+//         case 'RangeError':
+//             // the time was less than 0 or greater than the video’s duration
+//             break;
+//         default:
+//             // some other error occurred
+//             break;
+//     }
+// });
+
+// player.setColor('#45a247').then(function (color) {
+//     // the color that was set
+// }).catch(function (error) {
+//     // an error occurred setting the color
+// });
+
+// --------------- 2nd variant --------------------
+const CURRENT_TIME_KEY = 'videoplayer-current-time';
 
 const iframe = document.querySelector('iframe');
 const player = new Player(iframe, {
@@ -38,18 +45,18 @@ const player = new Player(iframe, {
 
 const getCurrentTime = function (currentTime) {
   const seconds = currentTime.seconds;
-  localStorage.setItem(TIME_KEY, JSON.stringify(seconds));
+  localStorage.setItem(CURRENT_TIME_KEY, JSON.stringify(seconds));
 };
 
 player.on('timeupdate', throttle(getCurrentTime, 1000));
 
-player.setCurrentTime(JSON.parse(localStorage.getItem(TIME_KEY)) || 0);
+player.setCurrentTime(JSON.parse(localStorage.getItem(CURRENT_TIME_KEY)) || 0);
 
-// player
-//   .setColor('#d8e0ff')
-//   .then(function (color) {
-//     console.log('The new color value: #76aef1');
-//   })
-//   .catch(function (error) {
-//     console.log('An error occurred while setting the color');
-//   });
+player
+  .setColor('#d8e0ff')
+  .then(function (color) {
+    console.log('The new color value: #D8E0FF');
+  })
+  .catch(function (error) {
+    console.log('An error occurred while setting the color');
+  });
