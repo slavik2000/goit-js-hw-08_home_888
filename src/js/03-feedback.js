@@ -1,108 +1,54 @@
-/*
-Завдання 3 - форма зворотного зв'язку
-HTML містить розмітку форми. Напиши скрипт, який буде зберігати значення полів у локальне сховище, коли користувач щось друкує.
-
-<form class="feedback-form" autocomplete="off">
-  <label>
-    Email
-    <input type="email" name="email" autofocus />
-  </label>
-  <label>
-    Message
-    <textarea name="message" rows="8"></textarea>
-  </label>
-  <button type="submit">Submit</button>
-</form>
-
-Виконуй це завдання у файлах 03-feedback.html і 03-feedback.js. Розбий його на декілька підзавдань:
-
-1.Відстежуй на формі подію input, і щоразу записуй у локальне сховище об'єкт з полями email і message, у яких зберігай поточні значення полів форми. Нехай ключем для сховища буде рядок "feedback-form-state".
-2.Під час завантаження сторінки перевіряй стан сховища, і якщо там є збережені дані, заповнюй ними поля форми. В іншому випадку поля повинні бути порожніми.
-3.Під час сабміту форми очищуй сховище і поля форми, а також виводь у консоль об'єкт з полями email, message та їхніми поточними значеннями.
-4.Зроби так, щоб сховище оновлювалось не частіше, ніж раз на 500 мілісекунд. Для цього додай до проекту і використовуй бібліотеку lodash.throttle.
-*/
-
 import '../css/common.css';
 import '../css/03-feedback.css';
 import throttle from 'lodash.throttle';
 
 const STORAGE_KEY = 'feedback-form-state';
 
+// слушатели
 const refs = {
   form: document.querySelector('.feedback-form'),
-  textarea: document.querySelector('.feedback-form textarea'),
-  input: document.querySelector('input'),
+  textarea: document.querySelector('textarea[name="message"]'),
+  email: document.querySelector('input[name="email"]'),
 };
-const formData = {
-  email: '',
-  message: '',
-};
-populateTextarea();
-refs.form.addEventListener('input', throttle(onTextareaInput, 500));
-refs.form.addEventListener('submit', e => {
-  e.preventDefault();
-  localStorage.removeItem(STORAGE_KEY);
-  e.currentTarget.reset();
-  console.log(formData);
-});
-function onTextareaInput(e) {
-  formData[e.target.name] = e.target.value;
-  const stringifiedData = JSON.stringify(formData);
-  localStorage.setItem(STORAGE_KEY, stringifiedData);
-}
-function populateTextarea() {
-  const savedMessage = JSON.parse(localStorage.getItem(STORAGE_KEY));
-  if (savedMessage === null) {
-    return;
-  }
 
-  refs.textarea.value = savedMessage.message || '';
-  refs.input.value = savedMessage.email || '';
-  formData.email = savedMessage.email || '';
-  formData.message = savedMessage.message || '';
+// обработчики событий
+refs.form.addEventListener('input', throttle(onInput, 800));
+refs.form.addEventListener('submit', onFormSubmit);
+
+savedText();
+
+// запись в localstorage
+function onInput() {
+    const objectToSave = { email: refs.email.value, message: refs.textarea.value };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(objectToSave));
 }
 
+// отправка формы и очистка
+function onFormSubmit(evt) {
+    evt.preventDefault();
+    console.log({ email: refs.email.value, message: refs.textarea.value });
+    evt.currentTarget.reset();
+    localStorage.removeItem(STORAGE_KEY);
+};
 
-//* 2 Варіант
+// проверка заполненности localstorage
+const load = key => {
+    try {
+        const serializedState = localStorage.getItem(key);
+        return serializedState === null ? undefined : JSON.parse(serializedState);
+    } catch (error) {
+        console.error('Get state error: ', error.message);
+    }
+};
 
-// const refs = {
-//   form: document.querySelector('.feedback-form'),
-//   email: document.querySelector('input'),
-//   message: document.querySelector('textarea'),
-// };
+function savedText() {
+    const savedMessage = localStorage.getItem(STORAGE_KEY);
+    // console.log(savedMessage);
+    if (savedMessage) {
+        const text = JSON.parse(savedMessage);
+        refs.email.value = text.email;
+        refs.textarea.value = text.message;
+        // console.log(text.email);
+    };
+};
 
-// refs.form.addEventListener('submit', onFormSubmit);
-// refs.form.addEventListener('input', throttle(onFormInput, 500));
-
-// const STORAGE_KEY = 'feedback-form-state';
-// let formData = {
-// email: '',
-// message: '',
-// };
-
-// processingTheForm();
-
-// function onFormSubmit(e) {
-//   e.preventDefault();
-// localStorage.removeItem(STORAGE_KEY);
-//   formData.email = refs.email.value;
-//   formData.message = refs.message.value;
-//   e.currentTarget.reset();
-// }
-
-// function onFormInput(e) {
-//   formData[e.target.name] = e.target.value;
-//   localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-// }
-
-// function processingTheForm() {
-//   const formValues = localStorage.getItem(STORAGE_KEY);
-//   const objectValues = JSON.parse(formValues);
-
-// if (objectValues) {
-//   formData = objectValues;
-//   refs.email.value = objectValues.email || '';
-//   refs.message.value = objectValues.message || '';
-//   formData = objectValues.email || '';
-//   formData = objectValues.message || '';
-// }
